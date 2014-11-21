@@ -1,0 +1,35 @@
+dtmc
+	const double PFfail = 1 - PFsucc;
+	const double PFsucc = 1;
+	const double Pask;	
+	const double PFSFfail = 1;
+	const double SFfail = 0;
+	const double SFsucc = 1 - PFSFfail;
+	const double SFgex = 0;
+	const int BUDGET;	
+	formula Res = (cost > BUDGET);
+	const double SuccT = 0.05;
+	
+module PPP
+	p: [0..8];
+	mode : [0..1];
+	[START] p=0 & !Res -> 1: (p'=1);
+	[PEXP] p=1 & !Res -> 1: (p'=2);
+	[PASK] p=2 & !Res -> Pask: (p'=3) + (1-Pask): (p'=4);
+	[PFVAL] p=3 & !Res -> PFfail: (p'=1)&(mode'=1) + PFsucc: (p'=4)&(mode'=1) ;	
+	[SEXP] p=4 & !Res -> 1: (p'=5);
+	[SASK] p=5 & !Res -> 1: (p'=6);	
+	//condition below is as such because SV say NO if we came with tactical
+	[SFVALT] (p=6 & !Res & mode=0) -> (1-SuccT):(p'=1) + SuccT:(p'=7);// no change in advice //&(mode'=1);
+	//condition below is as such because SV always says YES if we came with strategi
+	[SFVALS] (p=6 & !Res & mode=1) -> (1-SuccT):(p'=7) + SuccT:(p'=1);
+	[UNSOLVED] Res -> 1: (p'=8);
+	[SOLVED] (p=7) -> 1: (p'=7);
+	[GEX] (p=8) -> 1: (p'=8);
+endmodule
+module Cost
+	cost : [0..BUDGET];	
+	[PEXP] !Res -> 1: (cost'=cost+0);
+	[SEXP] (!Res & mode=0) -> 1: (cost'=cost+1);
+	[SEXP] (!Res & mode=1) -> 1: (cost'=cost+10);
+endmodule
