@@ -1,2 +1,2 @@
-POEPRISM
+POE_PRISM
 ========
