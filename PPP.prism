@@ -1,0 +1,31 @@
+dtmc
+	const double PFfail = 1 - PFsucc;
+	const double PFsucc;
+	const double Pask = 1.0;	
+	const double PFSFfail = 0.1;
+	const double SFfail = 0.1;
+	const double SFsucc = 0.7;
+	const double SFgex = 0.1;
+	const int BUDGET;
+	const int Unsolved = 8;
+	formula Res = (cost > BUDGET);
+module PPP
+	p: [0..8];
+	[START] p=0 & !Res -> 1: (p'=1);
+	[PEXP] p=1 & !Res -> 1: (p'=2);
+	[PASK] p=2 & !Res -> Pask: (p'=3) + (1-Pask): (p'=4);
+	[PFVAL] p=3 & !Res -> PFfail: (p'=1) + PFsucc: (p'=4);
+	[SEXP] p=4 & !Res -> 1: (p'=5);
+	[SASK] p=5 & !Res -> 1: (p'=6);
+	[SFVAL] p=6 & !Res -> PFSFfail:(p'=1)
+		+ SFfail:(p'=4)
+		+ SFsucc:(p'=7) + SFgex:(p'=8);
+	[UNSOLVED] Res -> 1: (p' = Unsolved);
+	[SOLVED] (p=7) -> 1: (p'=7);
+	[GEX] (p=8) -> 1: (p'=8);
+endmodule
+module Cost
+	cost : [0..BUDGET];
+	[PEXP] !Res -> 1: (cost'=cost+1);
+	[SEXP] !Res -> 1: (cost'=cost+1);
+endmodule
