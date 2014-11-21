@@ -1,2 +1,2 @@
-POE_PRISM
+POE Process Pattern in PRISM
 ========
